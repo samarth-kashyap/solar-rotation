@@ -13,14 +13,23 @@ def writefitsfile(a, fname):
     hdu.writeto(fname, overwrite=True)
     return None
 
-r = np.squeeze(fits.open('radius.fits')[0].data)
+# r = np.squeeze(fits.open('radius.fits')[0].data)
+r = np.loadtxt('r_jesper.dat')
 w1mesh = np.squeeze(fits.open('w1rot-hmi.fits')[0].data)
 w3mesh = np.squeeze(fits.open('w3rot-hmi.fits')[0].data)
 w5mesh = np.squeeze(fits.open('w5rot-hmi.fits')[0].data)
 rmesh = np.squeeze(fits.open('rad-hmi.fits')[0].data)
 
-rmin_idx = np.where(r > rmesh[0])[0][0]
-rmax_idx = np.where(r > rmesh[-1])[0][0]
+
+try:
+    rmin_idx = np.where(r >= rmesh[0])[0][0]
+except IndexError:
+    rmin_idx = 0
+
+try:
+    rmax_idx = np.where(r >= rmesh[-1])[0][0]
+except IndexError:
+    rmax_idx = len(r)
 
 wint1 = interp.interp1d(rmesh, w1mesh)
 wint3 = interp.interp1d(rmesh, w3mesh)

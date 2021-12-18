@@ -12,7 +12,13 @@ rhmi = fits.open('rad-hmi.fits')[0].data
 w1interp = fits.open('w1_interp-hmi.fits')[0].data.flatten()
 w3interp = fits.open('w3_interp-hmi.fits')[0].data.flatten()
 w5interp = fits.open('w5_interp-hmi.fits')[0].data.flatten()
-rinterp = fits.open('radius.fits')[0].data.flatten()
+# rinterp = fits.open('radius.fits')[0].data.flatten()
+rinterp = np.loadtxt('r_jesper.dat').flatten()
+
+wnew = np.zeros((3, len(rinterp)))
+wnew[0, :] = w1interp
+wnew[1, :] = w3interp
+wnew[2, :] = w5interp
 
 fig, axs = plt.subplots(nrows=3, ncols=1, figsize=(5, 15))
 axs = axs.flatten()
@@ -34,3 +40,5 @@ axs[2].set_title('w5')
 axs[2].set_xlabel('r/R')
 axs[2].legend()
 fig.show()
+
+np.savetxt("w_hmi.dat", wnew)
