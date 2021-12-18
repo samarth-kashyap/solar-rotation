@@ -14,11 +14,11 @@ def writefitsfile(a, fname):
     return None
 
 # r = np.squeeze(fits.open('radius.fits')[0].data)
-r = np.loadtxt('r_jesper.dat')
-w1mesh = np.squeeze(fits.open('w1rot-hmi.fits')[0].data)
-w3mesh = np.squeeze(fits.open('w3rot-hmi.fits')[0].data)
-w5mesh = np.squeeze(fits.open('w5rot-hmi.fits')[0].data)
-rmesh = np.squeeze(fits.open('rad-hmi.fits')[0].data)
+r = np.loadtxt('input_files/r_jesper.dat')
+w1mesh = np.squeeze(fits.open('output_files/w1rot-hmi.fits')[0].data)
+w3mesh = np.squeeze(fits.open('output_files/w3rot-hmi.fits')[0].data)
+w5mesh = np.squeeze(fits.open('output_files/w5rot-hmi.fits')[0].data)
+rmesh = np.squeeze(fits.open('output_files/rad-hmi.fits')[0].data)
 
 
 try:
@@ -50,6 +50,6 @@ w5[rmin_idx:rmax_idx] = wint5(r[rmin_idx:rmax_idx])
 w5[rmax_idx:] = w5[rmax_idx-1]
 w5[:rmin_idx] = w5[rmin_idx]
 
-writefitsfile(w1, '/home/g.samarth/rotation/w1_interp-hmi.fits')
-writefitsfile(w3, '/home/g.samarth/rotation/w3_interp-hmi.fits')
-writefitsfile(w5, '/home/g.samarth/rotation/w5_interp-hmi.fits')
+writefitsfile(w1, 'output_files/w1_interp-hmi.fits')
+writefitsfile(w3, 'output_files/w3_interp-hmi.fits')
+writefitsfile(w5, 'output_files/w5_interp-hmi.fits')
