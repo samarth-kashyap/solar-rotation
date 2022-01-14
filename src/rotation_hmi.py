@@ -22,15 +22,30 @@ def writefitsfile(a, fname, overwrite=False):
 
 
 def get_both_hemispheres(w2d_upper):
+    """Mirrors the rotation data from top hemisphere to the bottom hemisphere
+
+    Inputs:
+    -------
+    w2d_upper - np.ndarray(ndim=2, dtype=float)
+        Rotation profile in the top hemisphere
+
+    Returns:
+    --------
+    w2d - np.ndarray(ndim=2, dtype=float)
+        Rotation profile on the full sphere
+    """
+    lenr = w2d_upper.shape[0]
+    lent = w2d_upper.shape[1]
+
     w2d_lower = w2d_upper[:, ::-1][:, 1:]
     w2d = np.zeros((lenr, w2d_upper.shape[1]*2-1))
 
-    lent = w2d_upper.shape[1]
     w2d[:, :lent] = w2d_upper
     w2d[:, lent:] = w2d_lower
     return w2d
 
-
+#---------------------------((( TEST FUNCTIONS --------------------
+"""
 def wsr_to_omegas(wsr, r, s):
     return wsr/r * np.sqrt((2*s+1)/4./np.pi)
 
@@ -81,6 +96,8 @@ def esr_to_err_sbd(wsr):
         leg_poly_deriv = leg_poly.deriv()
         Omega_r_theta += (Omegasr[s_ind][:, NAX] * leg_poly_deriv(costh)[NAX, :])**2
     return np.sqrt(Omega_r_theta)
+"""
+#------------------------------ TEST FUNCTIONS ))) --------------------
 
 
 def get_omega024(rot_profile):
@@ -108,11 +125,15 @@ def get_w135(rot_profile, fprefix='rot'):
 
 
 def load_data():
+    """Reads hemispherical rotation data and returns full rotation profiles"""
+
+    # Reading radial-mesh, rotation profile and error
     rmesh = np.loadtxt(f'{input_dir}/rmesh.hmi')[::4]
     rot2d = np.loadtxt(f'{input_dir}/rot2d.hmi')
     err2d = np.loadtxt(f'{input_dir}/err2d.hmi')
     lenr = len(rmesh)
-    
+
+    # converting hemispherical theta-mesh to full spherical mesh
     tmesh = np.arange(rot2d.shape[1])
     theta = 90 - tmesh*15./8
     theta = np.append(-theta, theta[::-1][1:]) + 90.
