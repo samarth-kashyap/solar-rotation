@@ -187,8 +187,8 @@ if __name__=="__main__":
     #--------------------------- storing the profiles ----------------------
     writefitsfile(rmesh, f'{output_dir}/rad-hmi.fits', overwrite=True)
     writefitsfile(w1sig, 'output_files/w1err-hmi.fits', overwrite=True)
-    writefitsfile(w1sig, 'output_files/w3err-hmi.fits', overwrite=True)
-    writefitsfile(w1sig, 'output_files/w5err-hmi.fits', overwrite=True)
+    writefitsfile(w3sig, 'output_files/w3err-hmi.fits', overwrite=True)
+    writefitsfile(w5sig, 'output_files/w5err-hmi.fits', overwrite=True)
     #------------------------------------------------------------------------
 
     plt.plot(rmesh, w1)
