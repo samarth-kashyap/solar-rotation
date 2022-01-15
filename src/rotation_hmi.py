@@ -19,6 +19,7 @@ def writefitsfile(a, fname, overwrite=False):
     hdu = fits.PrimaryHDU()
     hdu.data = a
     hdu.writeto(fname, overwrite=overwrite)
+    print(f"Writing {fname}")
 
 
 def get_both_hemispheres(w2d_upper):
@@ -98,26 +99,57 @@ def esr_to_err_sbd(wsr):
     return np.sqrt(Omega_r_theta)
 """
 #------------------------------ TEST FUNCTIONS ))) --------------------
+def get_omegak(rot_profile, smax):
+    costh = np.cos(theta)
+    klist = np.arange(smax+2)[::2]
+    lplist = []
+    omegak = []
+    for k in klist:
+        lp.append(scipy_legendre(k)(costh))
+        omegak.append(np.zeros(lenr))
+
+    for ik, k in enumerate(klist):
+        for ir in range(lenr):
+            omegalist[ik][i] = simps(rot_profile[ir, :]*lp[ik], costh)*(2*k+1.)/2.
+
+    return omegak
+
+def get_ws(rot_profile, smax, fprefix='rot'):
+    omegak = get_omegak(rot_profile, smax)
+    klist = np.arange(smax+2)[::2]
+    slist = np.arange(smax)[::2] + 1
+    ws = []
+    for iess, s in enumerate(slist):
+        prefac = 2*sqrt(pi/(2*s+1))
+        omfac1 = 2*klist[iess] + 1
+        omfac2 = omfac1 + 4
+        ws.append(prefac*rmesh*(omega[iess]/omfac1 - omega[iess+1]/omfac2))
+        writefitsfile(ws[iess], f'{output_dir}/w{s}{fprefix}-hmi.fits', overwrite=True)
+    return ws
+
 
 
 def get_omega024(rot_profile):
     omega0 = np.zeros(lenr)
     omega2 = np.zeros(lenr)
     omega4 = np.zeros(lenr)
+    omega6 = np.zeros(lenr)
+    costh = np.cos(theta)
 
     for i in range(lenr):
         omega0[i] = simps(rot_profile[i, :]*lp0, costh)*(2*0+1.)/2.
         omega2[i] = simps(rot_profile[i, :]*lp2, costh)*(2*2+1.)/2.
         omega4[i] = simps(rot_profile[i, :]*lp4, costh)*(2*4+1.)/2.
+        omega6[i] = simps(rot_profile[i, :]*lp6, costh)*(2*6+1.)/2.
 
-    return omega0, omega2, omega4
+    return omega0, omega2, omega4, omega6
 
 
 def get_w135(rot_profile, fprefix='rot'):
-    omega0, omega2, omega4 = get_omega024(rot_profile)
+    omega0, omega2, omega4, omega6 = get_omega024(rot_profile)
     w1 = 2*sqrt(pi/3.)*rmesh*(omega0/1. - omega2/5.)
     w3 = 2*sqrt(pi/7.)*rmesh*(omega2/5. - omega4/9.)
-    w5 = 2*sqrt(pi/11)*rmesh*(omega4/9.)
+    w5 = 2*sqrt(pi/11)*rmesh*(omega4/9. - omega6/13.)
     writefitsfile(w1, f'{output_dir}/w1{fprefix}-hmi.fits', overwrite=True)
     writefitsfile(w3, f'{output_dir}/w3{fprefix}-hmi.fits', overwrite=True)
     writefitsfile(w5, f'{output_dir}/w5{fprefix}-hmi.fits', overwrite=True)
@@ -151,13 +183,15 @@ def get_legpoly(theta):
     lp0 = scipy_legendre(0)(costh)
     lp2 = scipy_legendre(2)(costh)
     lp4 = scipy_legendre(4)(costh)
-    return lp0, lp2, lp4
+    lp6 = scipy_legendre(6)(costh)
+    return lp0, lp2, lp4, lp6
 
 
 
 if __name__=="__main__":
     (rmesh, theta), (rot2d, err2d) = load_data()
-    lp0, lp2, lp4 = get_legpoly(theta)
+    lenr = len(rmesh)
+    lp0, lp2, lp4, lp6 = get_legpoly(theta)
 
     rot2dup = rot2d + err2d
     rot2dlo = rot2d - err2d
@@ -169,6 +203,8 @@ if __name__=="__main__":
     w1, w3, w5 = get_w135(rot2d, fprefix='rot')
     w1up, w3up, w5up = get_w135(rot2dup, fprefix='up')
     w1lo, w3lo, w5lo = get_w135(rot2dlo, fprefix='lo')
+
+    sinth = np.sin(theta)
 
     for i in range(lenr):
         err0[i] = simps(err2d[i, :]*lp0**2 * sinth**2, theta)* ((2*0+1.)/2.)**2
@@ -186,9 +222,9 @@ if __name__=="__main__":
 
     #--------------------------- storing the profiles ----------------------
     writefitsfile(rmesh, f'{output_dir}/rad-hmi.fits', overwrite=True)
-    writefitsfile(w1sig, 'output_files/w1err-hmi.fits', overwrite=True)
-    writefitsfile(w3sig, 'output_files/w3err-hmi.fits', overwrite=True)
-    writefitsfile(w5sig, 'output_files/w5err-hmi.fits', overwrite=True)
+    writefitsfile(w1sig, f'{output_dir}/w1err-hmi.fits', overwrite=True)
+    writefitsfile(w3sig, f'{output_dir}/w3err-hmi.fits', overwrite=True)
+    writefitsfile(w5sig, f'{output_dir}/w5err-hmi.fits', overwrite=True)
     #------------------------------------------------------------------------
 
     plt.plot(rmesh, w1)
