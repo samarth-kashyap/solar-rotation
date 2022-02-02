@@ -40,6 +40,8 @@ w5lo_mesh = np.squeeze(fits.open('output_files/w5lo-hmi.fits')[0].data)
 e1mesh = np.squeeze(fits.open('output_files/w1err-hmi.fits')[0].data)
 e3mesh = np.squeeze(fits.open('output_files/w3err-hmi.fits')[0].data)
 e5mesh = np.squeeze(fits.open('output_files/w5err-hmi.fits')[0].data)
+
+err1dmesh = np.squeeze(np.load('output_files/err1d-hmi.npy'))
 #-----------------------------------------------------------------------------
 
 try:
@@ -68,8 +70,11 @@ wint5lo = interp.interp1d(rmesh, w5lo_mesh)
 eint1 = interp.interp1d(rmesh, e1mesh)
 eint3 = interp.interp1d(rmesh, e3mesh)
 eint5 = interp.interp1d(rmesh, e5mesh)
-#------------------------------------------------------------------------------
 
+err1dint = []
+for i in range(err1dmesh.shape[0]):
+    err1dint.append(interp.interp1d(rmesh, err1dmesh[i, :]))
+#------------------------------------------------------------------------------
 w1 = np.zeros(r.shape[0])
 w3 = np.zeros(r.shape[0])
 w5 = np.zeros(r.shape[0])
@@ -85,9 +90,7 @@ w5lo = np.zeros(r.shape[0])
 e1 = np.zeros(r.shape[0])
 e3 = np.zeros(r.shape[0])
 e5 = np.zeros(r.shape[0])
-
 #------------------------------------------------------------------------------
-
 w1 = fix_extrapolation(w1, wint1)
 w3 = fix_extrapolation(w3, wint3)
 w5 = fix_extrapolation(w5, wint5)
@@ -103,6 +106,12 @@ w5lo = fix_extrapolation(w5lo, wint5lo)
 e1 = fix_extrapolation(e1, eint1)
 e3 = fix_extrapolation(e3, eint3)
 e5 = fix_extrapolation(e5, eint5)
+
+err1d = []
+for i in range(err1dmesh.shape[0]):
+    _err = np.zeros(r.shape[0])
+    err1d.append(fix_extrapolation(_err, err1dint[i]))
+err1d = np.array(err1d)
 #------------------------------------------------------------------------------
 
 writefitsfile(w1, 'output_files/w1_interp-hmi.fits')
@@ -120,3 +129,6 @@ writefitsfile(w5lo, 'output_files/w5lo_interp-hmi.fits')
 writefitsfile(e1, 'output_files/e1_interp-hmi.fits')
 writefitsfile(e3, 'output_files/e3_interp-hmi.fits')
 writefitsfile(e5, 'output_files/e5_interp-hmi.fits')
+
+writefitsfile(err1d, 'output_files/err1d-hmi.fits')
+np.savetxt('output_files/err1d-hmi.dat', err1d)
